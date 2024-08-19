@@ -4,6 +4,7 @@
 #include<sys/mman.h> // for using mmap()
 
 static size_t SYSTEM_PAGE_SIZE = 0 ;
+static vm_page_for_families_t* first_vm_page_for_families = NULL ;
 
 void mm_init()
 {
