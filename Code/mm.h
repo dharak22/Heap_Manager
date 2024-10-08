@@ -20,6 +20,8 @@ typedef struct vm_page_
 	struct vm_page_* next ;
 	struct vm_page_* prev ;
 	struct vm_page_family_* pg_family ; /* bvack pointer */
+	block_meta_data_t block_meta_data ;
+	char page_memory[0] ;
 } vm_page_t ;
 
 #define MAX_FAMILIES_PER_VM_PAGE \
