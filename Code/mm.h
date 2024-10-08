@@ -2,7 +2,7 @@
 #define __MM__
 #include<stdint.h>
 #define MM_MAX_STRUCT_NAME 32
-typedef struct vm_page_family
+typedef struct vm_page_family_
 {
 	char struct_name[MM_MAX_STRUCT_NAME];
 	uint32_t struct_size ;
