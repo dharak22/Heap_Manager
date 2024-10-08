@@ -129,6 +129,18 @@ vm_page_family_t* lookup_page_family_by_name(char* struct_name)
 }
 
 
+static void mm_union_free_blocks(block_meta_data_t* first , block_meta_data_t* second )
+{
+	assert( first->is_free == MM_TRUE && second->is_free == MM_TRUE );
+	first->block_size += sizeof(block_meta_data_t) + second->block_size ;
+	first->next_block = second->next_block ;
+	if (second->next_block)
+	{
+		second->next_block->prev_block = first ;
+	}
+}
+
+
 /*
 int main(int argv , char** argc){
 
