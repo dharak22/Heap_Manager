@@ -15,6 +15,13 @@ typedef struct vm_page_for_families
 	vm_page_family_t vm_page_family[0];
 } vm_page_for_families_t ;
 
+typedef struct vm_page_
+{
+	struct vm_page_* next ;
+	struct vm_page_* prev ;
+	struct vm_page_family_* pg_family ; /* bvack pointer */
+} vm_page_t ;
+
 #define MAX_FAMILIES_PER_VM_PAGE \
        ((SYSTEM_PAGE_SIZE - sizeof(vm_page_for_families_t *))/ \
 	   sizeof(vm_page_family_t))
