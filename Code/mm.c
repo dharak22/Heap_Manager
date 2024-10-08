@@ -152,6 +152,37 @@ vm_bool_t mm_is_vm_page_empty(vm_page_t* vm_page)
 	return MM_FALSE ;
 }
 
+static inline uint32_t mm_max_page_allocatable_memory ( int units )
+{
+	return (uint32_t) 
+	((SYSTEM_PAGE_SIZE * units ) - offset_of(vm_page_t , page_memory ));
+}
+
+vm_page_t* allocate_vm_page ( vm_page_family_t* vm_page_family )
+{
+	vm_page_t * vm_page = mm_get_new_vm_page_from_kernel(1) ;
+	/*Initialize lower most meta block of the vm page */
+	MARK_VM_PAGE_EMPTY(vm_page) ;
+	vm_page->block_meta_data.block_size = mm_max_page_allocatable_memory(1);
+	vm_page->block_meta_data.offset = offset_of(vm_page_t , block_meta_data) ;
+
+	vm_page->next = NULL ;
+	vm_page->prev = NULL ;
+	/*set the back pointer to page family */
+	vm_page->pg_family = vm_page_family ;
+	/* if it is a first VM page for a given page family */
+	if(!vm_page_family->first_page)
+	{
+		vm_page_family->first_page = vm_page ;
+		return vm_page ;
+	}
+	/* Insert new VM page to the head of the linked list*/
+	vm_page->next = vm_page_family->first_page ;
+	vm_page_family->first_page->prev = vm_page ;
+	vm_page_family->first_page = vm_page ;
+	return vm_page ;
+}
+
 
 /*
 int main(int argv , char** argc){
