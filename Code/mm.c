@@ -141,6 +141,18 @@ static void mm_union_free_blocks(block_meta_data_t* first , block_meta_data_t* s
 }
 
 
+vm_bool_t mm_is_vm_page_empty(vm_page_t* vm_page) 
+{
+	if( vm_page->block_meta_data.next_block == NULL &&
+	vm_page->block_meta_data.prev_block == NULL &&
+	vm_page->block_meta_data.is_free == MM_TRUE )
+	{
+		return MM_TRUE ;
+	}
+	return MM_FALSE ;
+}
+
+
 /*
 int main(int argv , char** argc){
 

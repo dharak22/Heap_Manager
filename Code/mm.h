@@ -79,6 +79,17 @@ typedef struct block_meta_data_
 		if (free_meta_block->next_block) \
 		free_meta_block->next_block->prev_block = free_meta_block 
 
+
+
+vm_bool_t mm_is_vm_page_empty(vm_page_t* vm_page) ;
+
+#define MARK_VM_PAGE_EMPTY(vm_page_t_ptr) \
+		vm_page_t_ptr->block_meta_data.next_block = NULL ; \
+		vm_page_t_ptr->block_meta_data.prev_block = NULL ; \
+		vm_page_t_ptr->block_meta_data.is_true = MM_TRUE 
+
+
+
 #endif/**/
 
 
