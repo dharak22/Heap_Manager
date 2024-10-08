@@ -184,6 +184,32 @@ vm_page_t* allocate_vm_page ( vm_page_family_t* vm_page_family )
 }
 
 
+void mm_vm_page_delete_and_free(vm_page_t* vm_page )
+{
+	vm_page_family_t* vm_page_family = vm_page->pg_family ;
+	/* If the page being deletes is the head of the linked list */
+	if(vm_page_family->first_page == vm_page )
+	{
+		vm_page_family->first_page = vm_page->next ;
+		if ( vm_page->next )
+		{
+			vm_page->next->prev = NULL ;
+		}
+		vm_page->next = NULL ;
+		vm_page->prev = NULL ;
+		return_vm_to_kernel((void*)vm_page , 1 );
+		return ;
+	}
+	/* if we are deleting the page from the middle or end of the linked list*/
+	if(vm_page->next)
+	{
+		vm_page->next->prev = vm_page->prev ;
+	}
+	vm_page->prev->next = vm_page->next ;
+	return_vm_to_kernel((void*) vm_page , 1 );
+}
+
+
 /*
 int main(int argv , char** argc){
 

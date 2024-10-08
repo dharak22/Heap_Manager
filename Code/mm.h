@@ -108,6 +108,10 @@ vm_bool_t mm_is_vm_page_empty(vm_page_t* vm_page) ;
 #define ITERATE_VM_PAGE_ALL_BLOCKS_END(vm_page_ptr,curr) \
  } }
 
+vm_page_t * allocate_vm_page( vm_page_family_t* vm_page_family );
+
+void mm_vm_page_delete_and_free(vm_page_t* vm_page );
+
 
 #endif/**/
 
