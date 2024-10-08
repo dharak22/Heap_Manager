@@ -60,6 +60,15 @@ typedef struct block_meta_data_
 	struct block_meta_data_ * prev_block ;
 	struct block_meta_data_ * next_block ;
 } block_meta_data_t ;
+
+
+#define mm_bind_blocks_for_allocation(allocated_meta_block , free_meta_block ) \
+		free_meta_block->prev_block = allocated_meta_block ;\
+		free_meta_block->next_block = allocated_meta_block->next_block ; \
+		allocated_meta_block->next_block = free_meta_block ; \
+		if (free_meta_block->next_block) \
+		free_meta_block->next_block->prev_block = free_meta_block 
+
 #endif/**/
 
 
