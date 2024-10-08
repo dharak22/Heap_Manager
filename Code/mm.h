@@ -88,6 +88,25 @@ vm_bool_t mm_is_vm_page_empty(vm_page_t* vm_page) ;
 		vm_page_t_ptr->block_meta_data.prev_block = NULL ; \
 		vm_page_t_ptr->block_meta_data.is_true = MM_TRUE 
 
+#define ITERATE_VM_PAGE_PER_FAMILY_BEGIN(vm_page_family_ptr , curr ) \
+{   \
+		curr = vm_page_family_ptr->first_page ;  \
+		vm_page_t * next = NULL ;    \
+		for ( ; curr ; curr = next ) {  \
+			next = curr->next ;
+#define ITERATE_VM_PAGE_PER_FAMILY_END(vm_page_family_ptr , curr ) \
+}}
+
+
+#define ITERATE_VM_PAGE_ALL_BLOCKS_BEGIN( vm_page_ptr , curr ) \
+{   \
+		curr = &vm_page_ptr->block_meta_data ; \
+		block_meta_data_t * next = NULL ; \
+		for ( ; curr ; curr = next ) \
+		{   \
+			next = NEXT_META_BLOCK( curr );
+#define ITERATE_VM_PAGE_ALL_BLOCKS_END(vm_page_ptr,curr) \
+ } }
 
 
 #endif/**/
