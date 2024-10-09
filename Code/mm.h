@@ -2,6 +2,35 @@
 #define __MM__
 #include<stdint.h>
 #define MM_MAX_STRUCT_NAME 32
+
+
+typedef enum
+{
+	MM_FALSE ,
+	MM_TRUE 
+}vm_bool_t ;
+
+
+typedef struct block_meta_data_
+{
+	vm_bool_t is_free ;
+	uint32_t block_size ;
+	uint32_t offset ;
+	struct block_meta_data_ * prev_block ;
+	struct block_meta_data_ * next_block ;
+} block_meta_data_t ;
+
+
+typedef struct vm_page_
+{
+	struct vm_page_* next ;
+	struct vm_page_* prev ;
+	struct vm_page_family_* pg_family ;/*back pointer*/
+	block_meta_data_t block_meta_data ;
+	char page_memory[0] ;/*First data block in VM page*/
+}vm_page_t ;
+
+
 typedef struct vm_page_family_
 {
 	char struct_name[MM_MAX_STRUCT_NAME];
@@ -15,14 +44,6 @@ typedef struct vm_page_for_families
 	vm_page_family_t vm_page_family[0];
 } vm_page_for_families_t ;
 
-typedef struct vm_page_
-{
-	struct vm_page_* next ;
-	struct vm_page_* prev ;
-	struct vm_page_family_* pg_family ; /* bvack pointer */
-	block_meta_data_t block_meta_data ;
-	char page_memory[0] ;
-} vm_page_t ;
 
 #define MAX_FAMILIES_PER_VM_PAGE \
        ((SYSTEM_PAGE_SIZE - sizeof(vm_page_for_families_t *))/ \
@@ -55,21 +76,6 @@ vm_page_family_t* lookup_page_family_by_name(char* struct_name) ;
 
 #define PREV_META_BLOCK(block_meta_data_ptr) \
 		(block_meta_data_ptr->prev_block)
-
-typedef enum
-{
-	MM_FALSE ,
-	MM_TRUE 
-}vm_bool_t ;
-
-typedef struct block_meta_data_
-{
-	vm_bool_t is_free ;
-	uint32_t block_size ;
-	uint32_t offset ;
-	struct block_meta_data_ * prev_block ;
-	struct block_meta_data_ * next_block ;
-} block_meta_data_t ;
 
 
 #define mm_bind_blocks_for_allocation(allocated_meta_block , free_meta_block ) \
