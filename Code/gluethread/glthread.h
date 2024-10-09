@@ -42,5 +42,22 @@ void glthread_add_last ( glthread_t* base_glthread , glthread_t* new_glthread );
 #define GLTHREAD_GET_USER_DATA_FROM_OFFSET(glthreadptr, offset )    \
         ( void *)((char*)(glthreadptr) - offset )
 
+void delete_glthread_list( glthread_t* base_glthread );
+
+unsigned int get_glthread_list_count( glthread_t* base_glthread );
+
+void glthread_priority_insert(glthread_t* base_glthread ,
+                                glthread_t* glthread, 
+                                int(*comp_fn)(void* , void* ),
+                                int offset );
+
+#if 0
+
+void*  gl_thread_search( glthread_t * base_glthread ,
+                        void *(*thread_to_struct_fn)(glthread_t *),
+                        void *key ,
+                        int(*comparison_fn)(void* , void* ));
+
 
 #endif
+#endif /*__GLUETHREAD__*/
