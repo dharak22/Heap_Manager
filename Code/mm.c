@@ -214,6 +214,30 @@ void mm_vm_page_delete_and_free(vm_page_t* vm_page )
 }
 
 
+static int free_blocks_comparison_function( void* _block_meta_data1 , void* _block_meta_data2 )
+{
+	block_meta_data_t* block_meta_data1 = (block_meta_data_t* ) _block_meta_data1 ;
+	block_meta_data_t* block_meta_data2 = (block_meta_data_t* ) _block_meta_data2 ;
+	if( block_meta_data1->block_size > block_meta_data2->block_size )
+	{
+		return -1 ;
+	}
+	else if ( block_meta_data1->block_size < block_meta_data2->block_size )
+	{
+		return 1 ;
+	}
+	return 0 ;
+}
+
+static void mm_add_free_block_meta_data_to_free_block_list(
+	vm_page_family_t* vm_page_family , block_meta_data_t* free_block )
+{
+	assert(free_block->is_free == MM_TRUE );
+	glthread_priority_insert(&vm_page_family->free_block_priority_list_head ,
+	&free_block->priority_thread_glue , free_blocks_comparison_function , 
+	offset_of( block_meta_data_t , priority_thread_glue )) ;
+}
+
 /*
 int main(int argv , char** argc){
 
