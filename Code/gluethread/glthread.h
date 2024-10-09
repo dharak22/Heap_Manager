@@ -3,8 +3,8 @@
 
 typedef struct _glthread
 {
-	struct glthread* left ;
-	struct glthread* right ;
+	struct _glthread* left ;
+	struct _glthread* right ;
 } glthread_t ;
 
 void glthread_add_next ( glthread_t* base_glthread , glthread_t* new_glthread );
