@@ -1,6 +1,7 @@
 #ifndef __MM__
 #define __MM__
 #include<stdint.h>
+#include "gluethread/glthread.h"
 #define MM_MAX_STRUCT_NAME 32
 
 
@@ -16,10 +17,12 @@ typedef struct block_meta_data_
 	vm_bool_t is_free ;
 	uint32_t block_size ;
 	uint32_t offset ;
+	glthread_t priority_thread_glue ;/*node of a linked list*/
 	struct block_meta_data_ * prev_block ;
 	struct block_meta_data_ * next_block ;
 } block_meta_data_t ;
 
+GLTHREAD_TO_STRUCT(glthread_to_block_meta_data , block_meta_data_t , priority_thread_glue , glthread_ptr );
 
 typedef struct vm_page_
 {
@@ -36,6 +39,7 @@ typedef struct vm_page_family_
 	char struct_name[MM_MAX_STRUCT_NAME];
 	uint32_t struct_size ;
 	vm_page_t* first_page ;
+	glthread_t free_block_priority_list_head ;
 } vm_page_family_t ;
 
 typedef struct vm_page_for_families

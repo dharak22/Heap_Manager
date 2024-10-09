@@ -65,6 +65,8 @@ void mm_instantiate_new_page_family( char* struct_name , uint32_t struct_size  )
 		first_vm_page_for_families->next = NULL ;
 		strncpy(first_vm_page_for_families->vm_page_family[0].struct_name , struct_name , MM_MAX_STRUCT_NAME );
 		first_vm_page_for_families->vm_page_family[0].struct_size = struct_size ;
+		first_vm_page_for_families->vm_page_family[0].first_page = NULL ;
+		init_glthread(&first_vm_page_for_families->vm_page_family[0].free_block_priority_list_head);
 		return ;
 	}
 	uint32_t count = 0 ;
@@ -76,17 +78,19 @@ void mm_instantiate_new_page_family( char* struct_name , uint32_t struct_size  )
 			continue;
 		}
 		assert(0);
-	} ITERATE_PAGE_FAMILIES_END(vm_page_for_families_ptr,vm_page_family_curr );
+	} ITERATE_PAGE_FAMILIES_END(first_vm_page_for_families,vm_page_family_curr );
 	if (count == MAX_FAMILIES_PER_VM_PAGE)
 	{
 		new_vm_page_for_families = (vm_page_for_families_t*) mm_get_new_vm_page_from_kernel(1) ;
 		new_vm_page_for_families->next = first_vm_page_for_families ;
 		first_vm_page_for_families = new_vm_page_for_families ;
-		vm_page_family_curr = &first_vm_page_for_families->vm_page_family[0];
+		//vm_page_family_curr = &first_vm_page_for_families->vm_page_family[0];
 	}
 
 	strncpy(vm_page_family_curr->struct_name , struct_name , MM_MAX_STRUCT_NAME );
 	vm_page_family_curr->struct_size = struct_size ;
+	vm_page_family_curr->first_page = NULL ;
+	init_glthread(&vm_page_family_curr->free_block_priority_list_head);
 }
 
 
@@ -165,7 +169,7 @@ vm_page_t* allocate_vm_page ( vm_page_family_t* vm_page_family )
 	MARK_VM_PAGE_EMPTY(vm_page) ;
 	vm_page->block_meta_data.block_size = mm_max_page_allocatable_memory(1);
 	vm_page->block_meta_data.offset = offset_of(vm_page_t , block_meta_data) ;
-
+	init_glthread(&vm_page->block_meta_data.priority_thread_glue);
 	vm_page->next = NULL ;
 	vm_page->prev = NULL ;
 	/*set the back pointer to page family */
