@@ -29,6 +29,7 @@ typedef struct vm_page_
 	struct vm_page_* next ;
 	struct vm_page_* prev ;
 	struct vm_page_family_* pg_family ;/*back pointer*/
+	uint32_t page_index ;
 	block_meta_data_t block_meta_data ;
 	char page_memory[0] ;/*First data block in VM page*/
 }vm_page_t ;
@@ -40,6 +41,9 @@ typedef struct vm_page_family_
 	uint32_t struct_size ;
 	vm_page_t* first_page ;
 	glthread_t free_block_priority_list_head ;
+	// added for statistics
+	uint32_t total_memory_in_use_by_app ;
+	uint32_t no_of_system_calls_to_alloc_dealloc_vm_pages ;
 } vm_page_family_t ;
 
 typedef struct vm_page_for_families
