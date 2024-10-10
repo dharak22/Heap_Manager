@@ -240,6 +240,34 @@ static void mm_add_free_block_meta_data_to_free_block_list(
 
 //remove_glthread(&block_meta_data_t->priority_thread_glue);
 //IS_GLTHREAD_LIST_EMPTY(&block_meta_data_t->priority_thread_glue);
+
+/*function for dynamic memory allocation*/
+void* xcalloc( char* struct_name , int units )
+{
+	// step1
+	vm_page_family_t* pg_family = lookup_page_family_by_name(struct_name);
+	if(! pg_family )
+	{
+		printf("Error: Structure %s not registered with Memory Manager\n", struct_name );
+		return NULL ;
+	}
+
+	if( units * pg_family->struct_size > mm_max_page_allocatable_memory(1) )
+	{
+		printf("Error: Memory requested exceeds page size \n");
+		return NULL ;
+	}
+	// find page which can satisfy the request
+	block_meta_data_t * free_block_meta_data = NULL ;
+	free_block_meta_data = mm_allocate_free_data_block( pg_family ,units * pg_family->struct_size );//function not defined
+	if (free_block_meta_data)
+	{
+		memset((char*)(free_block_meta_data + 1) ,0 , free_block_meta_data->block_size );
+		return (void*)(free_block_meta_data + 1);
+	}
+	return NULL ;
+}
+
 /*
 int main(int argv , char** argc){
 
