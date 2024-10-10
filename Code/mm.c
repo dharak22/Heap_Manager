@@ -238,6 +238,8 @@ static void mm_add_free_block_meta_data_to_free_block_list(
 	offset_of( block_meta_data_t , priority_thread_glue )) ;
 }
 
+//remove_glthread(&block_meta_data_t->priority_thread_glue);
+//IS_GLTHREAD_LIST_EMPTY(&block_meta_data_t->priority_thread_glue);
 /*
 int main(int argv , char** argc){
 

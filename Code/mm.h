@@ -122,6 +122,20 @@ vm_page_t * allocate_vm_page( vm_page_family_t* vm_page_family );
 
 void mm_vm_page_delete_and_free(vm_page_t* vm_page );
 
+//remove_glthread(&block_meta_data_t->priority_thread_glue);
+//IS_GLTHREAD_LIST_EMPTY(&block_meta_data_t->priority_thread_glue);
+
+static inline block_meta_data_t* mm_get_biggest_free_block_page_family
+(vm_page_family_t* vm_page_family )
+{
+	glthread_t* biggest_free_block_glue = vm_page_family->free_block_priority_list_head.right ;
+
+	if(biggest_free_block_glue)
+	{
+		return glthread_to_block_meta_data(biggest_free_block_glue);
+	}
+	return NULL ;
+}
 
 #endif/**/
 
