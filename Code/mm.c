@@ -241,6 +241,38 @@ static void mm_add_free_block_meta_data_to_free_block_list(
 //remove_glthread(&block_meta_data_t->priority_thread_glue);
 //IS_GLTHREAD_LIST_EMPTY(&block_meta_data_t->priority_thread_glue);
 
+
+static vm_page_t* mm_family_new_page_add( vm_page_family_t* vm_page_family )
+{
+	vm_page_t* vm_page = allocate_vm_page(vm_page_family);
+	if( !vm_page )
+	{
+		return NULL ;
+	}
+	// Add the new page to free block list 
+	mm_add_free_block_meta_data_to_free_block_list(vm_page_family , &vm_page->block_meta_data );
+	return vm_page ;
+}
+
+
+static block_meta_data_t* mm_allocate_free_data_block( 
+			vm_page_family_t* vm_page_family  ,  uint32_t req_size )
+{
+	vm_bool_t status = MM_FALSE ;
+	vm_page_t* vm_page = NULL ;
+	block_meta_data_t* block_meta_data = NULL ;
+
+	block_meta_data_t *biggest_block_meta_data = 
+		mm_get_biggest_free_block_page_family(vm_page_family);
+	if ( !biggest_block_meta_data || 
+				biggest_block_meta_data->block_size < req_size )
+	{
+		// add new page to staisfy the request
+		vm_page = mm_family_new_page_add(vm_page_family);
+	}
+	
+}
+
 /*function for dynamic memory allocation*/
 void* xcalloc( char* struct_name , int units )
 {
