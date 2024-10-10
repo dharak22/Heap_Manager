@@ -255,6 +255,65 @@ static vm_page_t* mm_family_new_page_add( vm_page_family_t* vm_page_family )
 }
 
 
+static vm_bool_t mm_split_free_data_block_for_allocation(
+			vm_page_family_t* vm_page_family , block_meta_data_t* block_meta_data ,
+					uint32_t size )
+{
+	block_meta_data_t* next_block_meta_data = NULL ;
+	assert(block_meta_data->is_free == MM_TRUE);
+	if( block_meta_data->block_size < size )
+	{
+		return MM_FALSE ;
+	}
+
+	uint32_t remaining_size = block_meta_data->block_size - size ;
+	block_meta_data->is_free = MM_FALSE ;
+	block_meta_data->block_size = size ;
+	remove_glthread(&block_meta_data->priority_thread_glue);
+	// block_meta_data->offset = ??
+
+	// CASE1 : NO SPLIT 
+	if (! remaining_size )
+	{
+		return MM_TRUE ;
+	}
+	// CASE3 : PARTIAL SPLIT SOFT IF
+	else if ( sizeof(block_meta_data_t) < remaining_size && 
+			remaining_size < ( sizeof(block_meta_data_t) + vm_page_family->struct_size ))
+	{
+		// new meta block to be created 
+		next_block_meta_data = NEXT_META_BLOCK_BY_SIZE(block_meta_data);
+		next_block_meta_data->is_free = MM_TRUE ;
+		next_block_meta_data->block_size = remaining_size - sizeof(block_meta_data_t);
+		next_block_meta_data->offset = block_meta_data->offset + 
+				sizeof(block_meta_data_t) + block_meta_data->block_size ;
+		init_glthread(&next_block_meta_data->priority_thread_glue);
+		mm_add_free_block_meta_data_to_free_block_list( vm_page_family , next_block_meta_data );
+		mm_bind_blocks_for_allocation(block_meta_data , next_block_meta_data );
+	}
+	// CASE3 : PARTIAL SPLIT HARD IF 
+	else if (remaining_size < sizeof(block_meta_data_t))
+	{
+		// no need to do anything
+	}
+	// CASE2 : FULL SPLIT NEW META BLOCK CREATED
+	else
+	{
+		// new meta block to be created 
+		next_block_meta_data = NEXT_META_BLOCK_BY_SIZE(block_meta_data);
+		next_block_meta_data->is_free = MM_TRUE ;
+		next_block_meta_data->block_size = remaining_size - sizeof(block_meta_data_t);
+		next_block_meta_data->offset = block_meta_data->offset + 
+				sizeof(block_meta_data_t) + block_meta_data->block_size ;
+		init_glthread(&next_block_meta_data->priority_thread_glue);
+		mm_add_free_block_meta_data_to_free_block_list( vm_page_family , next_block_meta_data );
+		mm_bind_blocks_for_allocation(block_meta_data , next_block_meta_data );
+	}
+	return MM_TRUE ;
+}
+
+
+
 static block_meta_data_t* mm_allocate_free_data_block( 
 			vm_page_family_t* vm_page_family  ,  uint32_t req_size )
 {
@@ -269,7 +328,26 @@ static block_meta_data_t* mm_allocate_free_data_block(
 	{
 		// add new page to staisfy the request
 		vm_page = mm_family_new_page_add(vm_page_family);
+		// allocate free block from this page now 
+		status = mm_split_free_data_block_for_allocation(vm_page_family, 
+						&vm_page->block_meta_data , req_size );
+		if ( status )
+		{
+			return &vm_page->block_meta_data;
+		}
+		return NULL ;
 	}
+	// The biggest block meta data can satisfy the request
+	if (biggest_block_meta_data)
+	{
+		status = mm_split_free_data_block_for_allocation(vm_page_family , 
+				biggest_block_meta_data , req_size );
+	}
+	if( status )
+	{
+		return biggest_block_meta_data ;
+	}
+	return NULL ;
 	
 }
 
