@@ -532,6 +532,37 @@ static int mm_get_hard_internal_memory_frag_size
 }
 
 
+static block_meta_data_t* mm_free_blocks( block_meta_data_t* to_be_free_block )
+{
+	block_meta_data_t* return_block = NULL ;
+	assert(to_be_free_block->is_free == MM_FALSE);
+
+	vm_page_t* hosting_page = MM_GET_PAGE_FROM_META_BLOCK(to_be_free_block);
+	vm_page_family_t* vm_page_family =  hosting_page->pg_family ;
+	return_block = to_be_free_block ;
+	to_be_free_block->is_free = MM_TRUE ;
+
+	block_meta_data_t* next_block = NEXT_META_BLOCK(to_be_free_block);
+	// handling hard IF memory
+	if( next_block )
+	{
+		// case 1 data block is uppermost data block in a vm page
+		to_be_free_block->block_size = mm_get_hard_internal_memory_frag_size
+		(to_be_free_block , next_block );
+	}
+	else
+	{
+		// case 2 page boundary condition
+		char* end_address_of_vm_page = (char*)((char*)hosting_page + SYSTEM_PAGE_SIZE );
+		char* end_address_of_free_data_block = (char*)
+		(to_be_free_block + 1) + to_be_free_block->block_size ;
+		int internal_mem_fragmentation = (int)((unsigned long)end_address_of_vm_page -
+		(unsigned long)end_address_of_free_data_block);
+		to_be_free_block->block_size += internal_mem_fragmentation ;
+	}
+}
+
+
 void xfree( void* app_data )
 {
 	block_meta_data_t *block_meta_data = ( block_meta_data_t* )
