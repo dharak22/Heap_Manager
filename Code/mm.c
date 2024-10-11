@@ -4,10 +4,12 @@
 #include<sys/mman.h> // for using mmap()
 #include<stdint.h>
 #include"mm.h"
+#include"css.h"
 #include<assert.h>
 
-static vm_page_for_families_t* first_vm_page_for_families = NULL ;
+static vm_page_for_families_t* first_vm_page_for_families = NULL ;// called in line 414 check if error
 static size_t SYSTEM_PAGE_SIZE = 0 ;
+void *gb_hsba = NULL ; // heap segment start for block allocation
 
 
 
@@ -376,6 +378,96 @@ void* xcalloc( char* struct_name , int units )
 		return (void*)(free_block_meta_data + 1);
 	}
 	return NULL ;
+}
+
+
+void mm_print_vm_page_details( vm_page_t* vm_page , uint32_t i )
+{
+	printf("\t Page Index : %u , address = %p\n" , vm_page->page_index , vm_page );
+	printf("\t\t next = %p , prev = %p \n", vm_page->next , vm_page->prev );
+	printf("\t\t page family = %s \n " ,  vm_page->pg_family->struct_name );
+
+	uint32_t j = 0 ;
+	block_meta_data_t* curr ;
+	ITERATE_VM_PAGE_ALL_BLOCKS_BEGIN(vm_page , curr )
+	{
+
+		printf( ANSI_COLOR_YELLOW "\t\t\t%-14p block %-3u %s block_size = %-6u  " 
+				"offset = %-6u prev = %-14p next = %p \n" ANSI_COLOR_RESET , curr ,
+				j++ , curr->is_free ? "F R E E D" : "ALLOCATED" , curr->block_size ,
+				curr->offset , curr->prev_block , curr->next_block );
+
+	} ITERATE_VM_PAGE_ALL_BLOCKS_END( vm_page , curr );
+}
+
+void mm_print_memory_usage( char* struct_name )
+{
+	uint32_t i = 0 ;
+	vm_page_t *vm_page = NULL ;
+	vm_page_family_t *vm_page_family_curr ;
+	uint32_t number_of_struct_families = 0 ;
+	uint32_t total_memory_in_use_by_application = 0 ;
+	uint32_t cumulative_vm_pages_claimed_from_kernel = 0 ;
+
+	printf("\n vm page size = %zu bytes \n", SYSTEM_PAGE_SIZE );
+
+	ITERATE_PAGE_FAMILIES_BEGIN( first_vm_page_for_families , vm_page_family_curr ){
+
+		if (struct_name)
+		{
+			if(strncmp(struct_name , vm_page_family_curr->struct_name , 
+						strlen(vm_page_family_curr->struct_name)))
+			{
+				continue;
+			}
+		}
+		number_of_struct_families++ ;
+		
+		// definition of ANSI_COLOR_(NAME OF COLOR) GIVEN IN css.h
+		printf(ANSI_COLOR_GREEN "vm_page_family : %s, struct size : %u \n" 
+				ANSI_COLOR_RESET , vm_page_family_curr->struct_name ,
+				vm_page_family_curr->struct_size );
+		
+		printf(ANSI_COLOR_CYAN "\tapp used memory %uB , #sys calls %u \n" 
+				ANSI_COLOR_RESET , vm_page_family_curr->total_memory_in_use_by_app ,
+				vm_page_family_curr->no_of_system_calls_to_alloc_dealloc_vm_pages );
+		
+		total_memory_in_use_by_application += vm_page_family_curr->total_memory_in_use_by_app ;
+		i =  0 ;
+
+		ITERATE_VM_PAGE_PER_FAMILY_BEGIN( vm_page_family_curr , vm_page )
+		{
+
+			cumulative_vm_pages_claimed_from_kernel++;
+			mm_print_vm_page_details( vm_page , i++ ) ;
+
+		} ITERATE_VM_PAGE_PER_FAMILY_END( vm_page_family_curr , vm_page );
+
+	} ITERATE_PAGE_FAMILIES_END( first_vm_page_for_families , vm_page_family_curr );
+
+	printf( ANSI_COLOR_MAGENTA "\n total application memory usage : %u bytes \n" ANSI_COLOR_RESET ,
+			total_memory_in_use_by_application ) ;
+	
+	printf( ANSI_COLOR_MAGENTA "# of vm pages in use : %u (%lu bytes).\n" \
+			"heap segment start ptr = %p , sbrk(0) = %p , gb_hsba = %p , diff = %lu  \n" \
+			ANSI_COLOR_RESET , cumulative_vm_pages_claimed_from_kernel , first_vm_page_for_families
+			, sbrk(0) , gb_hsba , (unsigned long)sbrk(0) - (unsigned long)gb_hsba );
+
+	float memory_app_use_to_total_memory_ratio = 0.0 ;
+	
+	if( cumulative_vm_pages_claimed_from_kernel )
+	{
+		memory_app_use_to_total_memory_ratio = (float)(total_memory_in_use_by_application * 100 )/  \
+		(float)(cumulative_vm_pages_claimed_from_kernel * SYSTEM_PAGE_SIZE );
+	}
+
+	printf(ANSI_COLOR_MAGENTA "memory in use by application = %f%% \n" ANSI_COLOR_RESET ,
+				memory_app_use_to_total_memory_ratio );
+	
+	printf("total memory being used by memory manager = %lu bytes \n" ,
+			((cumulative_vm_pages_claimed_from_kernel * SYSTEM_PAGE_SIZE)  \
+			+ (number_of_struct_families * sizeof(vm_page_family_t))));
+
 }
 
 /*
