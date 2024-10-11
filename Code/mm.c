@@ -523,6 +523,13 @@ void mm_print_block_usage()
 	} ITERATE_PAGE_FAMILIES_END(first_vm_page_for_families ,  vm_page_family_curr );
 }
 
+static int mm_get_hard_internal_memory_frag_size
+( block_meta_data_t* first , block_meta_data_t* second )
+{
+	block_meta_data_t* next_block = NEXT_META_BLOCK_BY_SIZE(first);
+	return (int) ( (unsigned long)second - (unsigned long)first );
+}
+
 /*
 int main(int argv , char** argc){
 
