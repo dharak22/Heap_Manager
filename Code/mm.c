@@ -560,6 +560,28 @@ static block_meta_data_t* mm_free_blocks( block_meta_data_t* to_be_free_block )
 		(unsigned long)end_address_of_free_data_block);
 		to_be_free_block->block_size += internal_mem_fragmentation ;
 	}
+	// perform merging
+	if ( next_block && next_block->is_free == MM_TRUE )
+	{
+		// union the two blocks
+		mm_union_free_blocks(to_be_free_block , next_block);
+		return_block = to_be_free_block ;	
+	}
+	// check the previous block if it is free or not
+	block_meta_data_t* prev_block = PREV_META_BLOCK(to_be_free_block);
+	if( prev_block && prev_block->is_free == MM_TRUE )
+	{
+		mm_union_free_blocks(prev_block , to_be_free_block);
+		return_block = prev_block ;
+	}
+	
+	if(mm_is_vm_page_empty(hosting_page))
+	{
+		mm_vm_page_delete_and_free(hosting_page);
+		return NULL ;
+	}
+	mm_add_free_block_meta_data_to_free_block_list(hosting_page->pg_family , return_block);
+	return return_block ;
 }
 
 
