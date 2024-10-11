@@ -8,6 +8,11 @@ void* xcalloc(char* struct_name , int units);
 #define XCALLOC(units , struct_name ) \
 	(xcalloc(#struct_name , units))
 
+void xfree( void* app_data);
+
+#define XFREE(ptr) \
+	xfree(ptr) 
+
 // initialization functions
 void mm_init();
 
