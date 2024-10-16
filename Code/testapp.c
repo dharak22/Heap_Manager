@@ -32,7 +32,7 @@ int main( int argc , char** argv)
 	student_t* stud2 = XCALLOC(1, student_t);
 #if 0 
 	int i = 0 ;
-	for( ; i < 500 ; i++ )
+	for( ; i < 500000 ; i++ )
 	{
 		XCALLOC(1, emp_t);
 		XCALLOC(1, student_t);
@@ -40,8 +40,7 @@ int main( int argc , char** argv)
 	#endif
 	printf(" \n SCENARIO 1 : *********** \n");
 	mm_print_memory_usage(0);
-	mm_print_block_usage();
-	
+	mm_print_block_usage();	
 	scanf("%d",&wait);
 
 	XFREE(emp1);
@@ -58,6 +57,8 @@ int main( int argc , char** argv)
 	printf(" \n SCENARIO 3 : ************ \n");
 	mm_print_memory_usage(0);
 	mm_print_block_usage();
+
 	return 0 ;
+
 }
 
