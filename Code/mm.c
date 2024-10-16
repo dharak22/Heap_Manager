@@ -503,7 +503,7 @@ void mm_print_block_usage()
 					assert(!IS_GLTHREAD_LIST_EMPTY(&block_meta_data_curr->priority_thread_glue));
 				}
 
-				if(block_meta_data_curr->is_free = MM_TRUE )
+				if(block_meta_data_curr->is_free == MM_TRUE )
 				{
 					free_block_count++ ;
 				}
@@ -590,7 +590,7 @@ void xfree( void* app_data )
 	block_meta_data_t *block_meta_data = ( block_meta_data_t* )
 	((char*)app_data - sizeof(block_meta_data_t)) ;
 
-	assert(block_meta_data->is_free == MM_FALSE );
+	assert(block_meta_data->is_free == MM_FALSE );// change it to false 
 	mm_free_blocks(block_meta_data);
 }
 
