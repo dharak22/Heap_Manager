@@ -11,3 +11,5 @@ gcc -g -c testapp.c -o testapp.o
 gcc -g -c gluethread/glthread.c -o gluethread/glthread.o
 <br>
 After compiling these 3 files you have to do the final compilation : gcc -g testapp.o mm.o gluethread/glthread.o -o exe
+<br>
+run the command to see the output : ./exe 
